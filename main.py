@@ -4,7 +4,7 @@ import pyglet
 from pyglet.window import key
 
 import xmlmap_maker
-import time
+
 
 import cocos
 from cocos import tiles, actions, layer, sprite
@@ -42,15 +42,15 @@ class World(cocos.layer.Layer):
         for k in self.bindings:
             buttons[self.bindings[k]] = 0
         self.buttons = buttons
-        """
+
         self.carLayer = layer.ScrollableLayer()
         self.carLayer.add(self.player)
         self.manager = layer.ScrollingManager()
         self.manager.add(self.map)
         self.manager.add(self.carLayer)
         self.add(self.manager)
-        #self.add(car_layer)"""
         self.schedule(self.update)
+
 
     def newMap(self):
         xmlmap_maker.newMap(60, 60)
@@ -70,6 +70,8 @@ class World(cocos.layer.Layer):
         return False
 
     def update(self, dt):
+        self.manager.set_focus(self.player.x, self.player.y)
+
         if self.blockKeys > 0:
             self.blockKeys -= dt
 
@@ -90,9 +92,10 @@ class Car(cocos.sprite.Sprite):
 
     def __init__(self):
         super(Car, self).__init__(Car.carImage)
-        self.x = 64
-        self.y = 64
-        self.animTime = 0.4
+        self.x = 64*7
+        self.y = 64*7
+        self.animTime = 0.5
+        self.rotTime = 0.4
         self.orientation = UP
 
     def checkOrientation(self):
@@ -113,16 +116,11 @@ class Car(cocos.sprite.Sprite):
             print "bad rotation", str(self.rotation)
         print "Orientation:", str(self.orientation)
 
-
     def turnRight(self):
-        self.do(actions.RotateBy(90, self.animTime))
-
-
+        self.do(actions.RotateBy(90, self.rotTime))
 
     def turnLeft(self):
-        self.do(actions.RotateBy(-90, self.animTime))
-
-
+        self.do(actions.RotateBy(-90, self.rotTime))
 
     def forward(self):
         self.checkOrientation()
@@ -141,44 +139,16 @@ def main():
 
     from cocos.director import director
 
-    director.init(width=600, height=300, do_not_scale=True, resizable=True)
+    director.init(width=600, height=600, do_not_scale=True, resizable=True)
 
-    # --- Test starts
     world = World()
     car_layer = layer.ScrollableLayer()
     car_layer.add(world.player)
-    scroller = layer.ScrollingManager()
-    scroller.add(world.map)
-    scroller.add(car_layer)
-
-    #car.do(DriveCar())
-
 
     scene = cocos.scene.Scene()
-    #scene.add(manager, z=0)
+
     scene.add(world)
-    scene.add(scroller)
     director.run(scene)
-
-    # --- Test ends
-
-    #car_layer = layer.ScrollableLayer()
-    #car = cocos.sprite.Sprite('car.png')
-    #car_layer.add(car)
-    #car.do(DriveCar())
-
-    #scroller = layer.ScrollingManager()
-    #test_layer = tiles.load('tilemap.xml')['map0']
-    #scroller.add(test_layer)
-    #scroller.add(car_layer)
-
-
-
-
-
-    #main_scene = cocos.scene.Scene(manager)
-
-    #director.run(main_scene)
 
 
 if __name__ == '__main__':
