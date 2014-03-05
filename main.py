@@ -28,15 +28,17 @@ class World(cocos.layer.Layer):
     def __init__(self):
         super(World, self).__init__()
         self.player = Car(self)
-        self.newMap()
+        self.newMap(30, 30)
         self.map = tiles.load('tilemap.xml')['map0']
         self.blockKeys = 0.0
-        self.blockKeysFull = 0.5
+        self.blockKeysFull = 0.21
         self.bindings = {
             key.LEFT: 'left',
             key.RIGHT: 'right',
             key.UP: 'up',
             key.DOWN: 'down',
+            key.W: 'up2',
+            key.Z: 'scale',
                         }
         buttons = {}
         for k in self.bindings:
@@ -52,8 +54,8 @@ class World(cocos.layer.Layer):
         self.schedule(self.update)
 
 
-    def newMap(self):
-        xmlmap_maker.newMap(60, 60)
+    def newMap(self, x=30, y=30):
+        xmlmap_maker.newMap()
 
     def on_key_press(self, k, m):
         binds = self.bindings
@@ -74,11 +76,19 @@ class World(cocos.layer.Layer):
 
         if self.blockKeys > 0:
             self.blockKeys -= dt
+        if self.blockKeys <= 0:
+            cell = self.map.get_at_pixel(self.player.x, self.player.y)
+            x2, y2 = cell.x, cell.y
+            self.player.x = x2+self.player.movAmount/2
+            self.player.y = y2+self.player.movAmount/2
 
         buttons = self.buttons
         if buttons['up'] and self.blockKeys <= 0:
             self.blockKeys = self.blockKeysFull
             self.player.forward()
+        elif buttons['up2'] and self.blockKeys <= 0:
+            self.blockKeys = self.blockKeysFull
+            self.player.forward(False)
         elif buttons['left'] and self.blockKeys <= 0:
             self.blockKeys = self.blockKeysFull
             self.player.turnLeft()
@@ -88,6 +98,11 @@ class World(cocos.layer.Layer):
         elif buttons['down'] and self.blockKeys <= 0:
             self.blockKeys = self.blockKeysFull
             self.player.turnBack()
+        elif buttons['scale'] and self.blockKeys <= 0:
+            if self.manager.scale == .25:
+                self.manager.do(actions.ScaleTo(1, 2))
+            else:
+                self.manager.do(actions.ScaleTo(.25, 2))
 
 
 class Car(cocos.sprite.Sprite):
@@ -102,8 +117,8 @@ class Car(cocos.sprite.Sprite):
         self.owner = owner
         self.x = 64*7
         self.y = 64*7
-        self.animTime = 0.5
-        self.rotTime = 0.4
+        self.animTime = 0.2
+        self.rotTime = 0.2
         self.orientation = UP
         self.movAmount = 128
 
@@ -130,14 +145,18 @@ class Car(cocos.sprite.Sprite):
     def turnBack(self):
         self.do(actions.RotateBy(-180, self.rotTime))
 
-    def forward(self):
-        #TODO Make sure that player stays in middle of cell
+    def forward(self,check=True):
         cell = self.owner.map.get_at_pixel(self.x, self.y)
         self.checkOrientation()
         x, y = self.orientation
         cell = self.owner.map.get_neighbor(cell, self.orientation)
-        if not "wall" in cell.tile.id:
-            self.do(actions.MoveBy((x*self.movAmount, y*self.movAmount), self.animTime))
+
+        try:
+            if not "wall" in cell.tile.id or not check:
+                self.do(actions.MoveBy((x*self.movAmount, y*self.movAmount), self.animTime))
+        except AttributeError:
+            print "You are trying to exceed map limits"
+
 
 
 def main():

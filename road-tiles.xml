@@ -23,7 +23,7 @@
 		<image id="i-t19" offset="512,384"/>
 	</imageatlas>
 	<tileset>
-		<tile id="orange">
+		<tile id="orange_wall">
 			<image ref="i-t0"/>
 		</tile>
 		<tile id="purple">
