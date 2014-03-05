@@ -19,14 +19,10 @@ def newMap(x, y, tilesetfile="road-tiles.xml"):
         print "Error occurred"
         quit()
 
-
-
     for child in tileXml:
         if child.tag == "tileset":
             for tile in child.findall('tile'):
                 idList.append(tile.get('id'))
-
-
 
     rE = ET.Element('resource')
     rqE = ET.SubElement(rE, 'requires', {'file': tilesetfile})

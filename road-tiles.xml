@@ -1,41 +1,87 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <resource>
- <imageatlas size="128x128" file="road-tiles.png">
-    <image id="i-tl" offset="0,384" />
-    <image id="i-th" offset="128,384" />
-    <image id="i-tr" offset="384,384" />
-    <image id="i-road" offset="512,384" />
-
-    <image id="i-vl" offset="0,256" />
-    <image id="i-tli" offset="128,256" />
-    <image id="i-tri" offset="256,256" />
-    <image id="i-vr" offset="384,256" />
-    <image id="i-empty" offset="512,256" />
-
-    <image id="i-bli" offset="128,128" />
-    <image id="i-bri" offset="256,128" />
-
-    <image id="i-bl" offset="0,0" />
-    <image id="i-bh" offset="128,0" />
-    <image id="i-br" offset="384,0" />
- </imageatlas>
- <tileset>
-    <tile id="tl"><image ref="i-tl" /></tile>
-    <tile id="th"><image ref="i-th" /></tile>
-    <tile id="tr"><image ref="i-tr" /></tile>
-    <tile id="road"><image ref="i-road" /></tile>
-
-    <tile id="vl"><image ref="i-vl" /></tile>
-    <tile id="tli"><image ref="i-tli" /></tile>
-    <tile id="tri"><image ref="i-tri" /></tile>
-    <tile id="vr"><image ref="i-vr" /></tile>
-    <tile id="empty"><image ref="i-empty" /></tile>
-
-    <tile id="bli"><image ref="i-bli" /></tile>
-    <tile id="bri"><image ref="i-bri" /></tile>
-
-    <tile id="bl"><image ref="i-bl" /></tile>
-    <tile id="bh"><image ref="i-bh" /></tile>
-    <tile id="br"><image ref="i-br" /></tile>
- </tileset>
+	<imageatlas file="road-tiles.png" size="128x128">
+		<image id="i-t0" offset="0,0"/>
+		<image id="i-t1" offset="128,0"/>
+		<image id="i-t2" offset="256,0"/>
+		<image id="i-t3" offset="384,0"/>
+		<image id="i-t4" offset="512,0"/>
+		<image id="i-t5" offset="0,128"/>
+		<image id="i-t6" offset="128,128"/>
+		<image id="i-t7" offset="256,128"/>
+		<image id="i-t8" offset="384,128"/>
+		<image id="i-t9" offset="512,128"/>
+		<image id="i-t10" offset="0,256"/>
+		<image id="i-t11" offset="128,256"/>
+		<image id="i-t12" offset="256,256"/>
+		<image id="i-t13" offset="384,256"/>
+		<image id="i-t14" offset="512,256"/>
+		<image id="i-t15" offset="0,384"/>
+		<image id="i-t16" offset="128,384"/>
+		<image id="i-t17" offset="256,384"/>
+		<image id="i-t18" offset="384,384"/>
+		<image id="i-t19" offset="512,384"/>
+	</imageatlas>
+	<tileset>
+		<tile id="orange">
+			<image ref="i-t0"/>
+		</tile>
+		<tile id="purple">
+			<image ref="i-t1"/>
+		</tile>
+		<tile id="big-pink">
+			<image ref="i-t2"/>
+		</tile>
+		<tile id="humanskin">
+			<image ref="i-t3"/>
+		</tile>
+		<tile id="lighthumanskin">
+			<image ref="i-t4"/>
+		</tile>
+		<tile id="green">
+			<image ref="i-t5"/>
+		</tile>
+		<tile id="greenish-yellow">
+			<image ref="i-t6"/>
+		</tile>
+		<tile id="darkblue">
+			<image ref="i-t7"/>
+		</tile>
+		<tile id="purple">
+			<image ref="i-t8"/>
+		</tile>
+		<tile id="t9">
+			<image ref="i-t9"/>
+		</tile>
+		<tile id="t10">
+			<image ref="i-t10"/>
+		</tile>
+		<tile id="concrete_wall">
+			<image ref="i-t11"/>
+		</tile>
+		<tile id="t12">
+			<image ref="i-t12"/>
+		</tile>
+		<tile id="t13">
+			<image ref="i-t13"/>
+		</tile>
+		<tile id="t14">
+			<image ref="i-t14"/>
+		</tile>
+		<tile id="white">
+			<image ref="i-t15"/>
+		</tile>
+		<tile id="blackwall">
+			<image ref="i-t16"/>
+		</tile>
+		<tile id="red">
+			<image ref="i-t17"/>
+		</tile>
+		<tile id="neongreen">
+			<image ref="i-t18"/>
+		</tile>
+		<tile id="yellow">
+			<image ref="i-t19"/>
+		</tile>
+	</tileset>
 </resource>

@@ -9,11 +9,10 @@ import xmlmap_maker
 import cocos
 from cocos import tiles, actions, layer, sprite
 
-UP = 0
-RIGHT = 1
-LEFT = 2
-DOWN = 3
-
+UP = (0, 1)
+DOWN = (0, -1)
+LEFT = (-1, 0)
+RIGHT = (1, 0)
 
 class World(cocos.layer.Layer):
     """
@@ -28,7 +27,7 @@ class World(cocos.layer.Layer):
 
     def __init__(self):
         super(World, self).__init__()
-        self.player = Car()
+        self.player = Car(self)
         self.newMap()
         self.map = tiles.load('tilemap.xml')['map0']
         self.blockKeys = 0.0
@@ -37,6 +36,7 @@ class World(cocos.layer.Layer):
             key.LEFT: 'left',
             key.RIGHT: 'right',
             key.UP: 'up',
+            key.DOWN: 'down',
                         }
         buttons = {}
         for k in self.bindings:
@@ -85,24 +85,29 @@ class World(cocos.layer.Layer):
         elif buttons['right'] and self.blockKeys <= 0:
             self.blockKeys = self.blockKeysFull
             self.player.turnRight()
+        elif buttons['down'] and self.blockKeys <= 0:
+            self.blockKeys = self.blockKeysFull
+            self.player.turnBack()
 
 
 class Car(cocos.sprite.Sprite):
+    """
+    Car sprite class
+
+    """
     carImage = pyglet.resource.image('car.png')
 
-    def __init__(self):
+    def __init__(self,owner):
         super(Car, self).__init__(Car.carImage)
+        self.owner = owner
         self.x = 64*7
         self.y = 64*7
         self.animTime = 0.5
         self.rotTime = 0.4
         self.orientation = UP
+        self.movAmount = 128
 
     def checkOrientation(self):
-        # UP = 0
-        # RIGHT = 1
-        # LEFT = 2
-        # DOWN = 3
         print "rotation:", str(self.rotation)
         if self.rotation == 0:
             self.orientation = UP
@@ -122,21 +127,23 @@ class Car(cocos.sprite.Sprite):
     def turnLeft(self):
         self.do(actions.RotateBy(-90, self.rotTime))
 
+    def turnBack(self):
+        self.do(actions.RotateBy(-180, self.rotTime))
+
     def forward(self):
+        #TODO Make sure that player stays in middle of cell
+        cell = self.owner.map.get_at_pixel(self.x, self.y)
         self.checkOrientation()
-        if self.orientation == UP:
-            self.do(actions.MoveBy((0, 128), self.animTime))
-        elif self.orientation == LEFT:
-            self.do(actions.MoveBy((-128, 0), self.animTime))
-        elif self.orientation == RIGHT:
-            self.do(actions.MoveBy((128, 0), self.animTime))
-        else:
-            self.do(actions.MoveBy((0, -128), self.animTime))
+        x, y = self.orientation
+        cell = self.owner.map.get_neighbor(cell, self.orientation)
+        if not "wall" in cell.tile.id:
+            self.do(actions.MoveBy((x*self.movAmount, y*self.movAmount), self.animTime))
 
 
 def main():
-    global keyboard, scroller
-
+    """
+    Game runs inside thi function
+    """
     from cocos.director import director
 
     director.init(width=600, height=600, do_not_scale=True, resizable=True)
