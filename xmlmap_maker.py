@@ -69,6 +69,9 @@ def dungeonGenerator(width=34, height=30, roomsMin = 6, roomsMax = 16, minRoomWi
     createSpawnPoint = True
     pathCounter = 0
 
+    #Creates paths from doors
+    #Creates spawn point
+    #TODO Create exit
     for rowId in range(len(dungeon)):
         for charId in range(len(dungeon[rowId])):
             if dungeon[rowId][charId] == 'F' and createSpawnPoint:

@@ -28,7 +28,7 @@ class World(cocos.layer.Layer):
 
     def __init__(self):
         super(World, self).__init__()
-        self.player = Car(self)  #TODO Make sure car spawns in right cell
+        self.player = Car(self)
         self.newMap(30, 100)
         self.map = tiles.load('tilemap.xml')['map0']
         self.checkSpawnPoint()
@@ -121,7 +121,11 @@ class Car(cocos.sprite.Sprite):
     """
     carImage = pyglet.resource.image('car.png')
 
-    def __init__(self,owner):
+    def __init__(self, owner):
+        # TODO method for new game
+        # TODO Better moving methods (walks different direction with different key)
+        # TODO Checks that car doesnt have odd rotations
+        # TODO Fluent moving
         super(Car, self).__init__(Car.carImage)
         self.owner = owner
         self.x = 64*7

@@ -50,7 +50,7 @@
 		<tile id="purple">
 			<image ref="i-t8"/>
 		</tile>
-		<tile id="spawn">
+		<tile id="exspawn">
 			<image ref="i-t9"/>
             <property type="bool" name="pl_spawn" value="True"/>
 		</tile>
@@ -78,8 +78,9 @@
 		<tile id="red">
 			<image ref="i-t17"/>
 		</tile>
-		<tile id="neongreen">
+		<tile id="spawn">
 			<image ref="i-t18"/>
+            <property type="bool" name="pl_spawn" value="True"/>
 		</tile>
 		<tile id="yellow">
 			<image ref="i-t19"/>
