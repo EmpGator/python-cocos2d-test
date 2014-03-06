@@ -15,6 +15,54 @@ LEFT = (-1, 0)
 RIGHT = (1, 0)
 
 
+class AnimationHandler():
+    """
+    This class should handle animations.
+
+    It uses image sequences to animate instances.
+    """
+
+    # Constants
+    STOPPED = 0
+    ONGOING = 1
+
+    def __init__(self, owner, sequence, animationLength=1.0, loop=False):
+        self.owner = owner
+        self.sequence = sequence
+        self.animationTimeFull = animationLength
+        self.animationTime = 0.0
+        self.imageId = 0
+        self.loop = loop  # TODO Implement looping
+        self.status = AnimationHandler.STOPPED
+
+    def imageUpdate(self, dt):
+        if self.status:
+            self.animationTime += dt
+
+            if self.animationTime >= self.animationTimeFull:
+                self.animationTime = 0.0
+                self.imageId = 0
+                self.owner.image = Car.carImageSequence[self.imageId]
+
+            changeTime = self.animationTimeFull/len(Car.carImageSequence)*(self.imageId+1)
+
+            if changeTime <= self.animationTime:
+                self.imageId += 1
+                self.owner.image = Car.carImageSequence[self.imageId]
+
+    def start(self):
+        self.status = AnimationHandler.ONGOING
+
+    def stop(self):
+        self.status = AnimationHandler.STOPPED
+
+    def toggle(self):
+        if self.status == AnimationHandler.ONGOING:
+            self.status = AnimationHandler.STOPPED
+        else:
+            self.status = AnimationHandler.ONGOING
+
+
 class World(cocos.layer.Layer):
     """
     Responsibilities:
@@ -27,13 +75,15 @@ class World(cocos.layer.Layer):
     is_event_handler = True
 
     def __init__(self):
+        # TODO method for new game
+
         super(World, self).__init__()
         self.player = Car(self)
         self.newMap(30, 100)
         self.map = tiles.load('tilemap.xml')['map0']
         self.checkSpawnPoint()
         self.blockKeys = 0.0
-        self.blockKeysFull = 0.4
+        self.blockKeysFull = 0.3
         self.bindings = {
             key.LEFT: 'left',
             key.RIGHT: 'right',
@@ -56,8 +106,10 @@ class World(cocos.layer.Layer):
         self.schedule(self.update)
 
 
+
+
     def newMap(self, x=30, y=30):
-        xmlmap_maker.newMap(x, y)
+        xmlmap_maker.newMap(x, y, roomsMin=10, roomsMax=40)
 
     def on_key_press(self, k, m):
         binds = self.bindings
@@ -80,7 +132,10 @@ class World(cocos.layer.Layer):
         self.player.x = x+self.player.movAmount/2
         self.player.y = y+self.player.movAmount/2
 
+
     def update(self, dt):
+        self.player.walkAnim.imageUpdate(dt)
+
         self.manager.set_focus(self.player.x, self.player.y)
 
         if self.blockKeys > 0:
@@ -94,19 +149,19 @@ class World(cocos.layer.Layer):
         buttons = self.buttons
         if buttons['up'] and self.blockKeys <= 0:
             self.blockKeys = self.blockKeysFull
-            self.player.forward()
+            self.player.up()
         elif buttons['up2'] and self.blockKeys <= 0:
             self.blockKeys = self.blockKeysFull
-            self.player.forward(False)
+            self.player.up(False)
         elif buttons['left'] and self.blockKeys <= 0:
             self.blockKeys = self.blockKeysFull
-            self.player.turnLeft()
+            self.player.left()
         elif buttons['right'] and self.blockKeys <= 0:
             self.blockKeys = self.blockKeysFull
-            self.player.turnRight()
+            self.player.right()
         elif buttons['down'] and self.blockKeys <= 0:
             self.blockKeys = self.blockKeysFull
-            self.player.turnBack()
+            self.player.down()
         elif buttons['scale'] and self.blockKeys <= 0:
             if self.manager.scale == .25:
                 self.manager.do(actions.ScaleTo(1, 2))
@@ -119,21 +174,23 @@ class Car(cocos.sprite.Sprite):
     Car sprite class
 
     """
-    carImage = pyglet.resource.image('car.png')
+    #carImage = pyglet.resource.image('car.png')
+    carImage = pyglet.image.load('car.png')
+    carImageSequence = pyglet.image.ImageGrid(carImage, 2, 2)
+    carImage = carImageSequence[0]
+
 
     def __init__(self, owner):
-        # TODO method for new game
-        # TODO Better moving methods (walks different direction with different key)
-        # TODO Checks that car doesnt have odd rotations
-        # TODO Fluent moving
+
         super(Car, self).__init__(Car.carImage)
         self.owner = owner
         self.x = 64*7
         self.y = 64*7
-        self.animTime = 0.35
-        self.rotTime = 0.35
+        self.animTime = 0.3
+        self.rotTime = 0.3
         self.orientation = UP
         self.movAmount = 128
+        self.walkAnim = AnimationHandler(self, Car.carImageSequence, self.animTime)
 
     def checkOrientation(self):
         if self.rotation == 0:
@@ -147,16 +204,27 @@ class Car(cocos.sprite.Sprite):
         else:
             print "bad rotation", str(self.rotation)
 
-    def turnRight(self):
-        self.do(actions.RotateBy(90, self.rotTime))
+    def right(self):
+        if self.rotation == 90:
+            self.move()
+        self.do(actions.RotateTo(90, self.rotTime))
 
-    def turnLeft(self):
-        self.do(actions.RotateBy(-90, self.rotTime))
+    def left(self):
+        if self.rotation == 270:
+            self.move()
+        self.do(actions.RotateTo(-90, self.rotTime))
 
-    def turnBack(self):
-        self.do(actions.RotateBy(-180, self.rotTime))
+    def down(self):
+        if self.rotation == 180:
+            self.move()
+        self.do(actions.RotateTo(-180, self.rotTime))
 
-    def forward(self,check=True):
+    def up(self, check=True):
+        if self.rotation == 0:
+            self.move(check)
+        self.do(actions.RotateTo(0, self.rotTime))
+
+    def move(self, check=True):
         cell = self.owner.map.get_at_pixel(self.x, self.y)
         self.checkOrientation()
         x, y = self.orientation
@@ -164,7 +232,9 @@ class Car(cocos.sprite.Sprite):
 
         try:
             if not "wall" in cell.tile.id or not check:
-                self.do(actions.MoveBy((x*self.movAmount, y*self.movAmount), self.animTime))
+                newX = self.x + self.movAmount*x
+                newY = self.y + self.movAmount*y
+                self.do(actions.MoveTo((newX, newY), self.animTime))
         except AttributeError:
             print "You are trying to exceed map limits"
 

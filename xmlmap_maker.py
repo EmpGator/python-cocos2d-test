@@ -12,6 +12,7 @@ idList = {
             'P': 'greenish-yellow',
             'D': 'humanskin',
             'S': 'spawn',
+            'E': 'exit',
         }
 
 def newRoom(minX,maxX,minY,maxY):
@@ -34,6 +35,7 @@ def dungeonGenerator(width=34, height=30, roomsMin = 6, roomsMax = 16, minRoomWi
         'P': 'greenish-yellow',
         'D': 'humanskin',
         'S': 'spawn',
+        'E': 'exit',
 
     :rtype : list
     """
@@ -67,18 +69,24 @@ def dungeonGenerator(width=34, height=30, roomsMin = 6, roomsMax = 16, minRoomWi
 
 
     createSpawnPoint = True
+    exitCoordinates = []
     pathCounter = 0
 
     #Creates paths from doors
     #Creates spawn point
-    #TODO Create exit
     for rowId in range(len(dungeon)):
         for charId in range(len(dungeon[rowId])):
-            if dungeon[rowId][charId] == 'F' and createSpawnPoint:
-                dungeon[rowId][charId] = 'S'
-                createSpawnPoint = False
+            if dungeon[rowId][charId] == 'F':
+                if createSpawnPoint:
+                    dungeon[rowId][charId] = 'S'
+                    createSpawnPoint = False
+                else:
+                    exitCoordinates.append([charId, rowId])
             if dungeon[rowId][charId] == 'D':
                 pathCounter += createPaths(rowId, charId, dungeon)
+
+    exitMap = choice(exitCoordinates)
+    dungeon[exitMap[1]][exitMap[0]] = 'E'
 
     #Prints map
     for row in dungeon:
@@ -156,10 +164,10 @@ def createPaths(y, x, dungeon):
     from door to dead end or
     from path to dead end
     """
-    #TODO from path to door or
-    #TODO from door to path or
-    #TODO from door to dead end or
-    #TODO from path to dead end'
+    #TODO from path to door
+    #TODO from door to path
+    #TODO from door to dead end
+    #TODO from path to dead end
     #TODO make sure every room is accessible
 
     mapDataForAstar = []

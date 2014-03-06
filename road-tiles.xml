@@ -75,8 +75,9 @@
 		<tile id="blackwall">
 			<image ref="i-t16"/>
 		</tile>
-		<tile id="red">
+		<tile id="exit">
 			<image ref="i-t17"/>
+            <property type="bool" name="exit" value="True"/>
 		</tile>
 		<tile id="spawn">
 			<image ref="i-t18"/>
