@@ -14,6 +14,7 @@ DOWN = (0, -1)
 LEFT = (-1, 0)
 RIGHT = (1, 0)
 
+
 class World(cocos.layer.Layer):
     """
     Responsibilities:
@@ -27,11 +28,12 @@ class World(cocos.layer.Layer):
 
     def __init__(self):
         super(World, self).__init__()
-        self.player = Car(self)
-        self.newMap(30, 30)
+        self.player = Car(self)  #TODO Make sure car spawns in right cell
+        self.newMap(30, 100)
         self.map = tiles.load('tilemap.xml')['map0']
+        self.checkSpawnPoint()
         self.blockKeys = 0.0
-        self.blockKeysFull = 0.21
+        self.blockKeysFull = 0.4
         self.bindings = {
             key.LEFT: 'left',
             key.RIGHT: 'right',
@@ -55,7 +57,7 @@ class World(cocos.layer.Layer):
 
 
     def newMap(self, x=30, y=30):
-        xmlmap_maker.newMap()
+        xmlmap_maker.newMap(x, y)
 
     def on_key_press(self, k, m):
         binds = self.bindings
@@ -64,12 +66,19 @@ class World(cocos.layer.Layer):
             return True
         return False
 
-    def on_key_release(self, k, m ):
+    def on_key_release(self, k, m):
         binds = self.bindings
         if k in binds:
             self.buttons[binds[k]] = 0
             return True
         return False
+
+    def checkSpawnPoint(self):
+        #Find spawntile
+        cells = self.map.find_cells(pl_spawn=True)
+        x, y = cells[0].x, cells[0].y
+        self.player.x = x+self.player.movAmount/2
+        self.player.y = y+self.player.movAmount/2
 
     def update(self, dt):
         self.manager.set_focus(self.player.x, self.player.y)
@@ -117,13 +126,12 @@ class Car(cocos.sprite.Sprite):
         self.owner = owner
         self.x = 64*7
         self.y = 64*7
-        self.animTime = 0.2
-        self.rotTime = 0.2
+        self.animTime = 0.35
+        self.rotTime = 0.35
         self.orientation = UP
         self.movAmount = 128
 
     def checkOrientation(self):
-        print "rotation:", str(self.rotation)
         if self.rotation == 0:
             self.orientation = UP
         elif self.rotation == 90:
@@ -134,7 +142,6 @@ class Car(cocos.sprite.Sprite):
             self.orientation = LEFT
         else:
             print "bad rotation", str(self.rotation)
-        print "Orientation:", str(self.orientation)
 
     def turnRight(self):
         self.do(actions.RotateBy(90, self.rotTime))
@@ -158,10 +165,9 @@ class Car(cocos.sprite.Sprite):
             print "You are trying to exceed map limits"
 
 
-
 def main():
     """
-    Game runs inside thi function
+    Game runs inside this function
     """
     from cocos.director import director
 

@@ -50,8 +50,9 @@
 		<tile id="purple">
 			<image ref="i-t8"/>
 		</tile>
-		<tile id="t9">
+		<tile id="spawn">
 			<image ref="i-t9"/>
+            <property type="bool" name="pl_spawn" value="True"/>
 		</tile>
 		<tile id="t10">
 			<image ref="i-t10"/>
