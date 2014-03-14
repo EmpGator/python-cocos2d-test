@@ -90,13 +90,13 @@ def dungeonGenerator(width=34, height=30, roomsMin = 6, roomsMax = 16, minRoomWi
     dungeon[exitMap[1]][exitMap[0]] = 'E'
 
     #Prints map
-    '''
+
     for row in dungeon:
         container = ''
         for char in row:
             container += char
         print container
-    '''
+
 
     print "Generated rooms", str(generatedRooms)
     print "Generated paths", str(pathCounter)
@@ -149,10 +149,6 @@ def CreateRoom(dungeon, x, y, rooms):
                             if createDoor == 1 and door == 0:
                                 dungeon[yId][xId] = 'D'  # Door
                                 door = 1
-                            else:
-                                dungeon[yId][xId] = 'R'  # Room wall
-                else:
-                    dungeon[yId][xId] = 'R'
 
     rooms.pop(0)
     return 1
@@ -210,36 +206,5 @@ def createPaths(y, x, dungeon):
 
     return 1
 
-def newMap(w=34, h=30, roomsMin=100, roomsMax=100, minRoomWidth=2, maxRoomWidth=8, minRoomHeight=2, maxRoomHeight=8, roomDensity=20, tilesetfile="road-tiles.xml"):
-    """
-    Creates actual xml map from nested list
-
-    """
-    import xml.etree.ElementTree as ET
-    global idList
-
-    dungeon = dungeonGenerator(w, h, roomsMin, roomsMax, minRoomWidth, maxRoomWidth, minRoomHeight, maxRoomHeight, roomDensity)  # Creates dungeon map as a nested list
-    rows = len(dungeon)
-    columns = len(dungeon[0])
-
-    # ----- Begin xml file creation -----
-    rE = ET.Element('resource')  # Begin xml creation
-    rqE = ET.SubElement(rE, 'requires', {'file': tilesetfile})
-    reE = ET.SubElement(rE, 'rectmap', {'id': "map0", 'origin': "0,0,0", 'tile_size': "128x128"})
-
-    # Start going trough nested-list map
-    for x in range(rows):
-        column = ET.SubElement(reE, 'column')
-        for y in range(columns):
-            key = dungeon[x][y]  # Each sing acts as key for tile
-            tileId = idList[key]  # Check which tile this sing is
-            ET.SubElement(column, 'cell', {'tile': tileId})  # Add tile id line to xml document
-
-    xmlContent = ET.tostring(rE)
-    xmlFile = open('tilemap.xml', 'w+')
-    xmlFile.write(xmlContent)
-    xmlFile.close()
-
-
 if __name__ == '__main__':
-    newMap(100, 100)
+    dungeonGenerator(100, 100)

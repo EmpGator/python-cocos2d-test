@@ -1,19 +1,33 @@
 # -*- coding: utf-8 -*-
+#TODO subfolders
 
 import pyglet
 from pyglet.window import key
 
 import xmlmap_maker
 
-
 import cocos
 from cocos import tiles, actions, layer, sprite
+
+import math
+from time import time
 
 UP = (0, 1)
 DOWN = (0, -1)
 LEFT = (-1, 0)
 RIGHT = (1, 0)
 
+
+#TODO Character base class
+#TODO Humanoid class (Body parts)
+#TODO Creature base class (Basically character base class)
+#TODO Player class (use Car class as a template)
+#TODO Materials
+#TODO Items
+
+#TODO Rename and refactor Classes variables and methods
+#TODO Follow PEP8
+#TODO Split classes to different files
 
 class AnimationHandler():
     """
@@ -32,14 +46,18 @@ class AnimationHandler():
         self.animationTimeFull = animationLength
         self.animationTime = 0.0
         self.imageId = 0
-        self.loop = loop  # TODO Implement looping
+        self.loop = loop
         self.status = AnimationHandler.STOPPED
+        self.owner.image = self.sequence[self.imageId]
 
     def imageUpdate(self, dt):
         if self.status:
             self.animationTime += dt
 
             if self.animationTime >= self.animationTimeFull:
+                if not self.loop:
+                    self.stop()
+
                 self.animationTime = 0.0
                 self.imageId = 0
                 self.owner.image = Car.carImageSequence[self.imageId]
@@ -49,6 +67,7 @@ class AnimationHandler():
             if changeTime <= self.animationTime:
                 self.imageId += 1
                 self.owner.image = Car.carImageSequence[self.imageId]
+
 
     def start(self):
         self.status = AnimationHandler.ONGOING
@@ -75,13 +94,13 @@ class World(cocos.layer.Layer):
     is_event_handler = True
 
     def __init__(self):
-        # TODO method for new game
 
         super(World, self).__init__()
         self.player = Car(self)
-        self.newMap(30, 100)
+        self.newMap(30, 20)
         self.map = tiles.load('tilemap.xml')['map0']
         self.checkSpawnPoint()
+        self.exitPoint = self.checkExitPoint()
         self.blockKeys = 0.0
         self.blockKeysFull = 0.3
         self.bindings = {
@@ -89,7 +108,7 @@ class World(cocos.layer.Layer):
             key.RIGHT: 'right',
             key.UP: 'up',
             key.DOWN: 'down',
-            key.W: 'up2',
+            key.E: 'down_level',
             key.Z: 'scale',
                         }
         buttons = {}
@@ -97,15 +116,39 @@ class World(cocos.layer.Layer):
             buttons[self.bindings[k]] = 0
         self.buttons = buttons
 
+        self.overlaidCells = []
+        #self.overlay = layer.util_layers.ColorLayer(0, 0, 0, 128, 20*128, 30*128)
+
+        #self.map.add(self.overlay)
         self.carLayer = layer.ScrollableLayer()
         self.carLayer.add(self.player)
         self.manager = layer.ScrollingManager()
         self.manager.add(self.map)
         self.manager.add(self.carLayer)
         self.add(self.manager)
+
         self.schedule(self.update)
 
+    def killChildren(self):
+        children = self.get_children()
+        for child in children:
+            if child != self.player:
+                print child
+                child.kill()
 
+    def newLevel(self):
+        # TODO Make this better
+        self.killChildren()
+        self.manager = layer.ScrollingManager()
+        self.newMap(30, 30)
+        self.map = tiles.load('tilemap.xml')['map0']
+        self.checkSpawnPoint()
+        self.carLayer = layer.ScrollableLayer()
+        self.carLayer.add(self.player)
+        self.manager = layer.ScrollingManager()
+        self.manager.add(self.map)
+        self.manager.add(self.carLayer)
+        self.add(self.manager)
 
 
     def newMap(self, x=30, y=30):
@@ -132,8 +175,26 @@ class World(cocos.layer.Layer):
         self.player.x = x+self.player.movAmount/2
         self.player.y = y+self.player.movAmount/2
 
+    def checkExitPoint(self):
+        cells = self.map.find_cells(exit=True)
+        return cells[0]
+
+    def setOverlay(self):
+        #TODO optimize this
+        #TODO Modify this to work
+        #TODO Try to set overlay for every cell at first
+        for angle in range(0, 360, 10):
+            cell = self.player.rayCastTo(angle, 128*7)
+            if cell is not None and cell not in self.overlaidCells:
+                overlay = layer.util_layers.ColorLayer(255, 255, 255, 128, 128, 128)
+                self.map.add(overlay)
+                overlay.x = cell.x
+                overlay.y = cell.y
+                print cell.tile
+                self.overlaidCells.append(cell)
 
     def update(self, dt):
+
         self.player.walkAnim.imageUpdate(dt)
 
         self.manager.set_focus(self.player.x, self.player.y)
@@ -150,9 +211,9 @@ class World(cocos.layer.Layer):
         if buttons['up'] and self.blockKeys <= 0:
             self.blockKeys = self.blockKeysFull
             self.player.up()
-        elif buttons['up2'] and self.blockKeys <= 0:
+        elif buttons['down_level'] and self.blockKeys <= 0:
             self.blockKeys = self.blockKeysFull
-            self.player.up(False)
+            self.player.downLevel()
         elif buttons['left'] and self.blockKeys <= 0:
             self.blockKeys = self.blockKeysFull
             self.player.left()
@@ -164,9 +225,12 @@ class World(cocos.layer.Layer):
             self.player.down()
         elif buttons['scale'] and self.blockKeys <= 0:
             if self.manager.scale == .25:
-                self.manager.do(actions.ScaleTo(1, 2))
+                self.manager.scale = 1
+                #self.manager.do(actions.ScaleTo(1, 0.3))
             else:
-                self.manager.do(actions.ScaleTo(.25, 2))
+                self.manager.scale = .25
+                #self.manager.do(actions.ScaleTo(.25, 0.3))
+            self.blockKeys = self.blockKeysFull
 
 
 class Car(cocos.sprite.Sprite):
@@ -174,11 +238,10 @@ class Car(cocos.sprite.Sprite):
     Car sprite class
 
     """
-    #carImage = pyglet.resource.image('car.png')
-    carImage = pyglet.image.load('car.png')
-    carImageSequence = pyglet.image.ImageGrid(carImage, 2, 2)
+    carImage = pyglet.resource.image('player-move.png')
+    #carImage = pyglet.image.load('player-move.png')
+    carImageSequence = pyglet.image.ImageGrid(carImage, 1, 8)
     carImage = carImageSequence[0]
-
 
     def __init__(self, owner):
 
@@ -225,6 +288,7 @@ class Car(cocos.sprite.Sprite):
         self.do(actions.RotateTo(0, self.rotTime))
 
     def move(self, check=True):
+
         cell = self.owner.map.get_at_pixel(self.x, self.y)
         self.checkOrientation()
         x, y = self.orientation
@@ -232,11 +296,32 @@ class Car(cocos.sprite.Sprite):
 
         try:
             if not "wall" in cell.tile.id or not check:
+                self.walkAnim.start()
                 newX = self.x + self.movAmount*x
                 newY = self.y + self.movAmount*y
                 self.do(actions.MoveTo((newX, newY), self.animTime))
         except AttributeError:
             print "You are trying to exceed map limits"
+
+    def downLevel(self):
+        cell = self.owner.map.get_at_pixel(self.x, self.y)
+        cell2 = self.owner.checkExitPoint()
+        if cell == cell2:
+            print "EXIT!"
+            self.owner.newLevel()
+
+    def rayCastTo(self, angle, length):
+        angle = math.radians(angle)
+        x, y = math.sin(angle), math.cos(angle)
+        for step in range(1, length/self.movAmount):
+            x2 = self.x + step*self.movAmount*x
+            y2 = self.y + step*self.movAmount*y
+            cell = self.owner.map.get_at_pixel(x2, y2)
+            try:
+                if 'wall' in cell.tile.id:
+                    return cell
+            except AttributeError:
+                print "Something went wrong"
 
 
 def main():
@@ -248,8 +333,6 @@ def main():
     director.init(width=600, height=600, do_not_scale=True, resizable=True)
 
     world = World()
-    car_layer = layer.ScrollableLayer()
-    car_layer.add(world.player)
 
     scene = cocos.scene.Scene()
 
