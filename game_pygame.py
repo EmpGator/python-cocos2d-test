@@ -2,8 +2,8 @@ import pygame
 import os
 from Character import *
 from map_maker import dungeonGenerator
-from PAdLib.shadow import Shadow
-from PAdLib.occluder import Occluder
+#from PAdLib.shadow import Shadow
+#from PAdLib.occluder import Occluder
 
 # Constants
 
@@ -39,7 +39,7 @@ class Game:
     and also screen updates
     """
 
-    def __init__(self, w=1600, h=900, flags=pygame.FULLSCREEN):
+    def __init__(self, w=1006, h=600, flags=0):
         pygame.init()
         # Setting up a screen
         self.width = w
@@ -53,15 +53,37 @@ class Game:
         self.tile_width = 128
         self.tile_height = 128
         self.tiles = imageSequence(self.tile_width, self.tile_height, self.map_tiles)
-        self.scale = 0.50
+        self.scale = 1.0
 
-        #This is for testing purposes
-        self.player = Player(128*self.scale)
-        self.drawTiles()
-        pygame.display.flip()
-        for event in pygame.event.get():
-            print event.type
-            print pygame.K_a
+        #Testing
+        self.drawMinX = 0
+        self.drawMaxX = self.width/self.tile_width+1
+        self.drawMinY = 0
+        self.drawMaxY = self.height/self.tile_height+1
+
+        self.player = Player(0*self.scale)
+        self.setCharacterStart()
+        self.loop()
+
+    def loop(self):
+        while True:
+            #self.drawTiles()
+            self.drawTilesCentered()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        quit()
+                    elif event.key in self.player.keys:
+                        self.player.keys[event.key]()
+                    else:
+                        print event.key
+
+            self.player.update(0, self.screen)
+            pygame.display.flip()
 
     def drawTiles(self):
         width = 0
@@ -78,6 +100,36 @@ class Game:
             height += self.tile_height*self.scale
             width = 0
 
+    def drawTilesCentered(self):
+        width = 0
+        height = 0
+
+        self.drawMinX = self.player.mapX - (self.drawMinX - self.drawMaxX)/2
+        self.drawMinY = self.player.mapY - (self.drawMinY - self.drawMaxY)/2
+
+        print self.drawMinX, self.drawMinY, self.player.mapX, self.player.mapY
+        if self.drawMinX < 0:
+            self.drawMinX = 0
+        if self.drawMinY < 0:
+            self.drawMinY = 0
+
+
+        for y in range(self.drawMaxY):
+            for x in range(self.drawMaxX):
+                tile = self.map[y+self.drawMinY][x+self.drawMinX]
+                #print "X:", x, "Y:", y, "W:", width, "H:", height, "Tile:", tile
+                self.screen.blit(self.tiles[idList[tile]], (width, height))
+                width += self.tile_width*self.scale
+                print self.tile_width*self.scale
+            height += self.tile_height*self.scale
+            width = 0
+
+    def setCharacterStart(self):
+        for yId in range(len(self.map)):
+            for xId in range(len((self.map[yId]))):
+                if self.map[yId][xId] == "S":
+                    self.player.mapX = xId
+                    self.player.mapY = yId
 
 def imageSequence(w, h, image):
     """
